@@ -12,4 +12,39 @@ for i in st:
 # readlist = read.read().strip('\'').split('\', \'')
 # print(readlist)
 
+# list1 = [1, 2, 3, 4, 5, 6, 7, 7, 9]
+# list2 = []
+# count = 0
+# for i in list1:
+#     if count == len(list1):
+#          break
+#     if count+1 == len(list1):
+#         list2.append([list1[count]])
+#         break
+#     list2.append([list1[count],list1[count+1]])
+#     count +=2
+# print(list2)
+
+# list1 = [1, 2, 3, 4, 5, 6, 7]
+#
+# dict3 = {'Костян': 'Herr', 'Натали': 'Frau', 'Чаки': 'Писюн'}
+#
+# for i, key, value in zip(list1, dict3.keys(), dict3.values()):
+#      print(f'{i} === {key} === {value}')
+
+'''search_film = f'«{random_film}», фильм'
+        film_text = wikipedia.summary(wikipedia.search(search_film)[0], sentences=5)
+        try:
+            driver.get(wikipedia.page(wikipedia.search(search_film)[0]).url)
+            driver.find_element(By.CLASS_NAME, 'infobox-image').click()
+            driver.implicitly_wait(2)
+            driver.find_element(By.CLASS_NAME, 'mw-mmv-stripe-button-container').find_element(By.TAG_NAME, 'a').click()
+            driver.implicitly_wait(2)
+            driver.find_element(By.CLASS_NAME, 'fullMedia').find_element(By.TAG_NAME, 'a').click()
+            lin = driver.current_url
+            await bot.send_photo(call.message.chat.id, lin, f'{random_film.upper()}\n\n{film_text}')
+        except:
+            await bot.send_message(call.message.chat.id,f'{random_film.upper()}\n\n{film_text}')'''
+
+
 
