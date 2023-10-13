@@ -1,6 +1,8 @@
+from aiogram.utils.media_group import MediaGroupBuilder
 from config import key
-from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram import Bot, Dispatcher, types, F
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile
+from aiogram.filters.command import Command
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -15,14 +17,15 @@ options.add_argument("--start-maximized")
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 
+
 bot = Bot(key)
-dp = Dispatcher(bot)
+dp = Dispatcher()
 
 
 def markups(**kwargs):
     buttons_l = []
     for key, value in kwargs.items():
-        buttons_l.append(InlineKeyboardButton(value, callback_data=key))
+        buttons_l.append(InlineKeyboardButton(text=value, callback_data=key))
     buttons = []
     count = 0
     for i in buttons_l:
@@ -37,7 +40,7 @@ def markups(**kwargs):
 
 
 alk = ['🍹', '🍸', '🥃', '🍷']
-bar_dict = { 'home': 'Домашний слинг', 'bianko': 'Бьянко бриз', 'rhino': 'Розовый носорог', 'smash': 'Текила смэш', 'negr': 'Негрони', 'daiq': 'Дайкири', 'long': 'Лонг айленд айс ти', 'cosmo': 'Космополитен',
+bar_dict = {'club':'Кловер клаб', 'cherry_w': 'Виски с вишней', 'home': 'Домашний слинг', 'bianko': 'Бьянко бриз', 'rhino': 'Розовый носорог', 'smash': 'Текила смэш', 'negr': 'Негрони', 'daiq': 'Дайкири', 'long': 'Лонг айленд айс ти', 'cosmo': 'Космополитен',
             'sky': 'Небеса',
             'snake': 'Гремучая змея', 'marg': 'Маргарита', 'sex': 'Секс на пляже', 'lagoon': 'Голубая лагуна',
             'b52': 'Б-52', 'maj': 'Май тай',
@@ -62,10 +65,10 @@ async def coc(name, call):
     user_id = call.from_user.id
     ranalk = random.choice(alk)
     if name == 'Манхэттен':
-        await bot.send_photo(call.message.chat.id, open('bar/godzilla.jpg', 'rb'))
+        await bot.send_photo(call.message.chat.id, FSInputFile('bar/godzilla.jpg'))
         await asyncio.sleep(1)
     elif name == 'Белый русский':
-        await bot.send_photo(call.message.chat.id, open('bar/lebo.jpg', 'rb'))
+        await bot.send_photo(call.message.chat.id, FSInputFile('bar/lebo.jpg'))
         await asyncio.sleep(1.5)
         await bot.send_message(call.message.chat.id, random.choice(
             ['"Только вдруг появляется какая-то мразь и ссыт на твой ковер."', '"Где деньги, Лебовски?"',
@@ -111,16 +114,16 @@ async def coc(name, call):
                 driver.find_element(By.TAG_NAME, 'table').find_elements(By.TAG_NAME, 'tr')][1:]
     ing_list = str(ing_list).strip('[]').replace("'", "")
     await bot.send_message(call.message.chat.id, f'Необходимые ингредиенты: {ing_list}')
-    media = types.MediaGroup()
+    media = MediaGroupBuilder()
     for i in icons_list:
-        media.attach_photo(types.InputMediaPhoto(i))
+        media.add_photo(i)
     await asyncio.sleep(1)
-    await bot.send_media_group(call.message.chat.id, media)
+    await bot.send_media_group(call.message.chat.id, media.build())
     await asyncio.sleep(1)
     for i in rec_list:
         await bot.send_message(call.message.chat.id, f'⚜️ {i.text}')
         await asyncio.sleep(1)
-    await bot.send_photo(call.message.chat.id, img, f'"Опля"! —  <b>"{name}</b>"', reply_markup=markups(bar='🔙'),
+    await bot.send_photo(call.message.chat.id, img, caption=f'"Опля"! —  <b>"{name}</b>"', reply_markup=markups(bar='🔙'),
                          parse_mode='HTML')
     try:
         warning[user_id] += 1
@@ -135,7 +138,7 @@ async def coc(name, call):
         await asyncio.sleep(1)
         await bot.send_message(call.message.chat.id, 'Чрезмерное употребление ведёт к...')
         await asyncio.sleep(1)
-        await bot.send_photo(call.message.chat.id, open('bar/warning.jpg', 'rb'))
+        await bot.send_photo(call.message.chat.id, FSInputFile('bar/warning.jpg'))
         await asyncio.sleep(1)
         await bot.send_message(call.message.chat.id, '...такому состоянию')
         await asyncio.sleep(2)
@@ -152,12 +155,13 @@ random_film_byid = {}
 warning = {}
 result = {}
 rand_coc = {}
-@dp.message_handler(commands=['start'])
+
+@dp.message(Command('start'))
 async def start_command(message: types.Message):
-    user_id = message.from_user.id
-    markup = types.InlineKeyboardMarkup()
+    # start_param = message.get_full_command()[1]
     go = types.InlineKeyboardButton(text='Ну давай 😃', callback_data='go')
-    markup.add(go)
+    markup = types.InlineKeyboardMarkup(inline_keyboard=[[go]])
+
     skull = await bot.send_message(chat_id=message.chat.id, text='╱▔▔▔▔▔▔▔╲╱▔▔▔▔▔╲')
 
     loading = ['╱▔▔▔▔▔▔▔╲╱▔▔▔▔▔╲', '▏╮╭┈┈╮╭┈╮▏╭╮┈╭╮▕', '▏┊╱▔▉┊╱▔▉▏▊┃▕▋┃▕', '▏╯╲▂╱┊╲▂╱▏▔▅┈▔▔▕', '╲╭┳┳╮▕▋╭╱╲┳┳┳┫▂╱',
@@ -178,44 +182,52 @@ async def start_command(message: types.Message):
             new_text = loading[0]
 
 
-@dp.callback_query_handler()
+@dp.callback_query()
 async def callback_inline(call: types.CallbackQuery):
     if call.data == 'go':
-        markup = types.InlineKeyboardMarkup()
+
         film_recom = types.InlineKeyboardButton(text='Посоветуй фильм 📺', callback_data='film_recom')
         coctail_recom = types.InlineKeyboardButton(text='Бар-бот 🍸', callback_data='bar')
         quest_recom = types.InlineKeyboardButton(text='Разомнём мозги 💡', callback_data='quest_recom')
         art_quest = types.InlineKeyboardButton(text='Арт-викторина 🎨', callback_data='art_quest')
         duck = types.InlineKeyboardButton(text='Хочу гифку с уточкой! 🦆', callback_data='duck')
         but_list = [duck, art_quest, quest_recom, coctail_recom, film_recom]
+        keyboard = [[],]
+        markup = types.InlineKeyboardMarkup(inline_keyboard=keyboard)
         await asyncio.sleep(0.5)
         mes = await call.message.answer('Чего изволишь?', reply_markup=markup)
         for i in range(5):
             await asyncio.sleep(0.5)
-            markup.add(but_list.pop())
+            keyboard.append([but_list.pop()])
+            markup = types.InlineKeyboardMarkup(inline_keyboard=keyboard)
             await bot.edit_message_reply_markup(call.message.chat.id, mes.message_id, reply_markup=markup)
 
     elif call.data == 'go2':
-        markup = types.InlineKeyboardMarkup()
         film_recom = types.InlineKeyboardButton(text='Посоветуй фильм 📺', callback_data='film_recom')
         quest_recom = types.InlineKeyboardButton(text='Разомнём мозги 💡', callback_data='quest_recom')
         art_quest = types.InlineKeyboardButton(text='Арт-викторина 🎨', callback_data='art_quest')
         duck = types.InlineKeyboardButton(text='Хочу гифку с уточкой! 🦆', callback_data='duck')
         but_list = [duck, art_quest, quest_recom, film_recom]
         await asyncio.sleep(0.5)
+        keyboard = [[], ]
+        markup = types.InlineKeyboardMarkup(inline_keyboard=keyboard)
         mes = await call.message.answer('Чего изволишь?', reply_markup=markup)
         for i in range(4):
             await asyncio.sleep(0.5)
-            markup.add(but_list.pop())
+            keyboard.append([but_list.pop()])
+            markup = types.InlineKeyboardMarkup(inline_keyboard=keyboard)
             await bot.edit_message_reply_markup(call.message.chat.id, mes.message_id, reply_markup=markup)
 
     # УТОЧКА:)
     elif call.data == 'duck':
         await bot.send_message(call.message.chat.id, 'Скинь мне картинку, я сделаю из неё гифку')
 
-        @dp.message_handler(content_types=['photo'])
+        @dp.message(F.photo)
         async def get_photo(message: types.Message):
-            await message.photo[-1].download(destination_file=('E:\OVERONE\Final project\photos\gettedimg.jpg'))
+
+            file_id = message.photo[-1].file_id
+            file = await bot.get_file(file_id)
+            await bot.download_file(file.file_path, 'photos\gettedimg.jpg')
             async def load():
                 coffe = ['♥', '♪)', '(♫', '❤️ )']
                 coffe_mes = await bot.send_message(call.message.chat.id, '██Ɔ')
@@ -232,8 +244,8 @@ async def callback_inline(call: types.CallbackQuery):
                         anime = '██Ɔ'
                         await bot.edit_message_text(anime, call.message.chat.id, coffe_id)
                         coffe = ['♥', '♪)', '(♫', '❤️ )']
-            await asyncio.gather(load(),photo_to_gif_with_duck('E:\OVERONE\Final project\photos\gettedimg.jpg'))
-            gifka = await bot.send_document(message.chat.id, open('gif/duck.gif', 'rb'), disable_content_type_detection=True)
+            await asyncio.gather(load(),photo_to_gif_with_duck('photos\gettedimg.jpg'))
+            gifka = await bot.send_document(message.chat.id, FSInputFile('gif/duck.gif'), disable_content_type_detection=True)
             await bot.delete_message(message.chat.id, gifka.message_id-1)
             await bot.delete_message(message.chat.id, gifka.message_id-2)
             await bot.delete_message(message.chat.id, gifka.message_id-3)
@@ -275,10 +287,9 @@ async def callback_inline(call: types.CallbackQuery):
                                         parse_mode='HTML')
         await asyncio.sleep(1)
         global marka
-        marka = types.InlineKeyboardMarkup()
         go = types.InlineKeyboardButton(text='🔙', callback_data='go')
         more = types.InlineKeyboardButton(text='Ещё!', callback_data='quest_recom')
-        marka.add(go, more)
+        marka = types.InlineKeyboardMarkup(inline_keyboard=[go, more])
         timer = await bot.send_message(call.message.chat.id, '‼️ У тебя 60 секунд ‼️', reply_markup=marka)
         time_list = ['🔟', '9️⃣', '🎱', '7️⃣', '6️⃣', '🤚', '4️⃣', '3️⃣', '✌️', '1️⃣']
         seconds = 60
@@ -304,21 +315,19 @@ async def callback_inline(call: types.CallbackQuery):
     # АРТ-ВИКТОРИНА
     elif call.data == 'art_quest':
         while True:
-            artist_list = [i for i in os.listdir('E:/Art')]
+            artist_list = [i for i in os.listdir('Art')]
             global artist1
             artist1 = artist_list.pop(random.choice(range(0, len(artist_list))))
             artist2 = artist_list.pop(random.choice(range(0, len(artist_list))))
             artist3 = artist_list.pop(random.choice(range(0, len(artist_list))))
             artist4 = artist_list.pop(random.choice(range(0, len(artist_list))))
-            artwork_list = [i for i in os.listdir(f'E:/Art/{artist1}')]
+            artwork_list = [i for i in os.listdir(f'Art/{artist1}')]
             artwork = artwork_list.pop(random.choice(range(0, len(artwork_list))))
-            if os.path.getsize(f'E:/Art/{artist1}/{artwork}') > 10485760:
+            if os.path.getsize(f'Art/{artist1}/{artwork}') > 10000000:
                 continue
             else:
-                global image
-                image = open(f'E:/Art/{artist1}/{artwork}', 'rb')
+                image = FSInputFile(f'Art/{artist1}/{artwork}')
                 break
-        mkp = types.InlineKeyboardMarkup(row_width=2)
         butt1 = types.InlineKeyboardButton(text=f'{artist1}', callback_data='artist1')
         butt2 = types.InlineKeyboardButton(text=f'{artist2}', callback_data='artist2')
         butt3 = types.InlineKeyboardButton(text=f'{artist3}', callback_data='artist3')
@@ -326,37 +335,36 @@ async def callback_inline(call: types.CallbackQuery):
         butt_set = set()
         butt_set.add(butt1), butt_set.add(butt2), butt_set.add(butt3), butt_set.add(butt4)
         butt_list = list(butt_set)
-        mkp.add(butt_list[0], butt_list[1], butt_list[2], butt_list[3])
-        await bot.send_photo(call.message.chat.id, image, 'Кто автор этой картины?', reply_markup=mkp)
-        image.close()
+
+        mkp = types.InlineKeyboardMarkup(inline_keyboard=[[butt_list[0], butt_list[1]],[butt_list[2], butt_list[3]]])
+        await bot.send_photo(call.message.chat.id, image, caption='Кто автор этой картины?', reply_markup=mkp)
+
     if call.data == 'artist1':
-        markup = types.InlineKeyboardMarkup()
         go = types.InlineKeyboardButton(text='🔙', callback_data='go')
         more = types.InlineKeyboardButton(text='Ещё!', callback_data='art_quest')
-        markup.add(go, more)
+        markup = types.InlineKeyboardMarkup(inline_keyboard=[[go, more]])
         try:
             global win_id
             win = await bot.copy_message(call.message.chat.id, from_chat_id=call.message.chat.id, message_id=win_id)
             win_id = win.message_id
         except:
-            win = await bot.send_sticker(call.message.chat.id, open('Win.tgs', 'rb'))
+            win = await bot.send_sticker(call.message.chat.id, FSInputFile('Win.tgs'))
             win_id = win.message_id
         await asyncio.sleep(1)
         await bot.send_message(call.message.chat.id, 'Бинго!')
         await asyncio.sleep(1)
         await bot.send_message(call.message.chat.id, 'Что дальше', reply_markup=markup)
     elif call.data == 'artist2' or call.data == 'artist3' or call.data == 'artist4':
-        markup = types.InlineKeyboardMarkup()
         go = types.InlineKeyboardButton(text='🔙', callback_data='go')
         more = types.InlineKeyboardButton(text='Ещё!', callback_data='art_quest')
-        markup.add(go, more)
+        markup = types.InlineKeyboardMarkup(inline_keyboard=[[go, more]])
         try:
             global scream_id
             scream = await bot.copy_message(call.message.chat.id, from_chat_id=call.message.chat.id,
                                             message_id=scream_id)
             scream_id = scream.message_id
         except:
-            scream = await bot.send_sticker(call.message.chat.id, open('Scream.tgs', 'rb'))
+            scream = await bot.send_sticker(call.message.chat.id, FSInputFile('Scream.tgs'))
             scream_id = scream.message_id
         await asyncio.sleep(1)
         await bot.send_message(call.message.chat.id, f'Нет, на самом деле это {artist1}')
@@ -380,25 +388,22 @@ async def callback_inline(call: types.CallbackQuery):
                 drivers_dict[user_id].get(f'https://kritikanstvo.ru/top/movies/best/2021-2023/start/0/')
             await bot.edit_message_text('Загрузка: █▒▒▒▒▒▒▒▒▒ 10%', call.message.chat.id, load_id)
             drivers_dict[user_id].find_element(By.CLASS_NAME, 'pseudolink').click()
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.6)
             drivers_dict[user_id].find_element(By.CLASS_NAME, 'pseudolink').click()
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.6)
             drivers_dict[user_id].find_element(By.CLASS_NAME, 'pseudolink').click()
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.6)
             drivers_dict[user_id].find_element(By.CLASS_NAME, 'pseudolink').click()
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.6)
             drivers_dict[user_id].find_element(By.CLASS_NAME, 'pseudolink').click()
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.6)
             await bot.edit_message_text('Загрузка: ██▒▒▒▒▒▒▒▒ 20%', call.message.chat.id, load_id)
             drivers_dict[user_id].find_element(By.CLASS_NAME, 'pseudolink').click()
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.6)
             drivers_dict[user_id].find_element(By.CLASS_NAME, 'pseudolink').click()
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.6)
             drivers_dict[user_id].find_element(By.CLASS_NAME, 'pseudolink').click()
-            await asyncio.sleep(0.5)
-            # for i in range(0, 60, 10):
-            #     drivers_dict[user_id].get(f'https://kritikanstvo.ru/top/movies/best/2021-2023/start/{i}/')
-            #     if i == 30:
+            await asyncio.sleep(0.6)
             elements = drivers_dict[user_id].find_elements(By.TAG_NAME, 'h2')
             for j in elements:
                 best_films.append(j.text)
@@ -421,6 +426,7 @@ async def callback_inline(call: types.CallbackQuery):
             for i in best_films:
                 if i not in base_list:
                     userid_films[user_id].append(i)
+
             try:
                 while True:
                     userid_films[user_id].remove('')
@@ -465,21 +471,22 @@ async def callback_inline(call: types.CallbackQuery):
         await bot.edit_message_text('Загрузка: █████████▒ 90%', call.message.chat.id, load_id)
         await asyncio.sleep(0.5)
         reply_markup = markups(trailer='Смотреть трейлер 🎞')
-        reply_markup.add(InlineKeyboardButton('Смотреть фильм 📽', film_page))
-        reply_markup.add(InlineKeyboardButton('Уже смотрел', callback_data='already'),
-                         InlineKeyboardButton('Ещё', callback_data='film_recom'))
-        reply_markup.add(InlineKeyboardButton('🔙', callback_data='go'))
+        reply_markup.inline_keyboard.append(
+            [InlineKeyboardButton(text='Смотреть фильм 📽', url=film_page)])
+        reply_markup.inline_keyboard.append([InlineKeyboardButton(text='Уже смотрел', callback_data='already'),
+                                             InlineKeyboardButton(text='Ещё', callback_data='film_recom')])
+        reply_markup.inline_keyboard.append([InlineKeyboardButton(text='🔙', callback_data='go')])
         if story == 0:
             story2 = drivers_dict[user_id].find_element(By.CLASS_NAME, 'b-post__description_text').text
             await bot.edit_message_text('Загрузка: ██████████ 100%', call.message.chat.id, load_id)
             try:
                 await asyncio.sleep(0.5)
                 result[user_id] = await bot.send_photo(call.message.chat.id, photo_url,
-                                                       f'{random_film.upper()} ({year})\n\n{story2}',
+                                                       caption=f'{random_film.upper()} ({year})\n\n{story2}',
                                                        reply_markup=reply_markup)
             except:
                 result[user_id] = await bot.send_photo(call.message.chat.id, photo_url2,
-                                                       f'{random_film.upper()} ({year})\n\n{story2}',
+                                                       caption=f'{random_film.upper()} ({year})\n\n{story2}',
                                                        reply_markup=reply_markup)
 
         else:
@@ -487,11 +494,11 @@ async def callback_inline(call: types.CallbackQuery):
             await bot.edit_message_text('Загрузка: ██████████ 100%', call.message.chat.id, load_id)
             try:
                 result[user_id] = await bot.send_photo(call.message.chat.id, photo_url,
-                                                   f'{random_film.upper()} ({year})\n\n{story}',
+                                                   caption=f'{random_film.upper()} ({year})\n\n{story}',
                                                    reply_markup=reply_markup)
             except:
                 result[user_id] = await bot.send_photo(call.message.chat.id, photo_url2,
-                                                       f'{random_film.upper()} ({year})\n\n{story}',
+                                                       caption=f'{random_film.upper()} ({year})\n\n{story}',
                                                        reply_markup=reply_markup)
         await asyncio.sleep(0.5)
         await bot.delete_message(call.message.chat.id, load_id)
@@ -544,10 +551,10 @@ async def callback_inline(call: types.CallbackQuery):
             films_list TEXT)""")
             cur.execute(f"""INSERT INTO {table_name}(films_list) VALUES ('{random_film_byid[user_id]}')""")
         new_markup = markups(trailer='Смотреть трейлер 🎞')
-        new_markup.add(InlineKeyboardButton('Смотреть фильм 📽', drivers_dict[user_id].current_url))
-        new_markup.add(InlineKeyboardButton('Уже смотрел ✔️', callback_data='already'),
-                       InlineKeyboardButton('Ещё', callback_data='film_recom'))
-        new_markup.add(InlineKeyboardButton('🔙', callback_data='go'))
+        new_markup.inline_keyboard.append([InlineKeyboardButton(text='Смотреть фильм 📽', url= drivers_dict[user_id].current_url)])
+        new_markup.inline_keyboard.append([InlineKeyboardButton(text='Уже смотрел ✔️', callback_data='already'),
+                       InlineKeyboardButton(text='Ещё', callback_data='film_recom')])
+        new_markup.inline_keyboard.append([InlineKeyboardButton(text='🔙', callback_data='go')])
 
         await bot.edit_message_reply_markup(call.message.chat.id, result[user_id].message_id, reply_markup=new_markup)
         bd = await bot.send_message(call.message.chat.id,
@@ -559,7 +566,7 @@ async def callback_inline(call: types.CallbackQuery):
     elif call.data == 'bar':
         await bot.send_message(call.message.chat.id, '🌀Добро пожаловать в бар-бот!🌀')
         await asyncio.sleep(1)
-        await bot.send_photo(call.message.chat.id, open('bar/octopus.jpg', 'rb'), reply_markup=markups(
+        await bot.send_photo(call.message.chat.id, FSInputFile('bar/octopus.jpg'), reply_markup=markups(
             classic='Классика',
             sweat='Для девочек',
             dead='Убей меня',
@@ -570,10 +577,10 @@ async def callback_inline(call: types.CallbackQuery):
             go='🔙'
         ))
     elif call.data == 'zoz':
-        haha = await bot.send_message(call.message.chat.id, 'Пошёл нахуй')
+        haha = await bot.send_message(call.message.chat.id, 'Пошёл нах*й')
         await asyncio.sleep(0.5)
         await bot.delete_message(call.message.chat.id, haha.message_id)
-        await bot.send_photo(call.message.chat.id, open('bar/shwarz2.jpg', 'rb'), 'Вкусняшки для зожников',
+        await bot.send_photo(call.message.chat.id, FSInputFile('bar/shwarz2.jpg'), 'Вкусняшки для зожников',
                              reply_markup=markups(dno='Золотое дно', basil='Базиликовый удар', blood='Кровавая Мэри',
                                                   gott='Карелл Готт', vegan = 'Демон-веган', shmel='Шмель', bar='🔙'))
     elif call.data == 'hot':
@@ -587,7 +594,7 @@ async def callback_inline(call: types.CallbackQuery):
                                                                 devil='Тессманский дьявол', controlshot='Контрольный выстрел', bar='🔙'))
             rango_id = rango.message_id
         except:
-            rango = await bot.send_animation(call.message.chat.id, open('bar/Rango-min.gif', 'rb'),
+            rango = await bot.send_animation(call.message.chat.id, FSInputFile('bar/Rango-min.gif'),
                                              caption='Коктейли и шоты с TABASCO® 🌶',
                                              reply_markup=markups(bojar='Боярский', bojar2='Дочь Боярского',
                                                                   reddog='Красный пёс', fors='Форсаж', dog='Собака.ру',
@@ -595,7 +602,7 @@ async def callback_inline(call: types.CallbackQuery):
                                                                   devil='Тессманский дьявол', controlshot='Контрольный выстрел', bar='🔙'))
             rango_id = rango.message_id
     elif call.data == 'sweat':
-        await bot.send_photo(call.message.chat.id, open(f'bar/girls{random.choice(range(1, 4))}.jpg', 'rb'),
+        await bot.send_photo(call.message.chat.id, FSInputFile(f'bar/girls{random.choice(range(1, 4))}.jpg'),
                              caption='Девочкам понравится',
                              reply_markup=markups(barbi='Барби', baunty='Баунти мартини', rose='Розовый сад',
                                                   porn='Порнозвезда', sex='Секс на пляже', orgasm='Модный оргазм',
@@ -607,7 +614,7 @@ async def callback_inline(call: types.CallbackQuery):
                                '<em>Что тебя не убивает, делает тебя пьянее</em> \n\n© Тибетская мудрость',
                                parse_mode='HTML')
         await asyncio.sleep(2.5)
-        await bot.send_photo(call.message.chat.id, open('bar/Горькое пойло, Адриан Брауэр, 1631.jpg', 'rb'),
+        await bot.send_photo(call.message.chat.id, FSInputFile('bar/Горькое пойло, Адриан Брауэр, 1631.jpg'),
                              reply_markup=markups(hiro='Хиросима', aurora='Северное сияние', sky='Небеса',
                                                   bum='Текила бум', negr='Негрони', green='Зелёная фея',
                                                   blackrus='Чёрный русский', french='Френч 75', martin='Водка мартини',
@@ -623,7 +630,7 @@ async def callback_inline(call: types.CallbackQuery):
                                                                  shashki='Алко-шашки', bar='🔙'))
             orange_id = orange.message_id
         except:
-            orange = await bot.send_animation(call.message.chat.id, open('bar/Clockwork_intro.mp4', 'rb'),
+            orange = await bot.send_animation(call.message.chat.id, FSInputFile('bar/Clockwork_intro.mp4'),
                                               caption='Коктейли с молоком/сливками 🥛',
                                               reply_markup=markups(pina='Пина колада', orgasm='Модный оргазм', belrus='Белый русский',
                                                                    tom='Том и Джерри', brendi='Бренди и кола',
@@ -661,7 +668,7 @@ async def callback_inline(call: types.CallbackQuery):
         except:
             user_id = call.from_user.id
             coc_list = [values for values in bar_dict.values()]
-            roulette = await bot.send_document(call.message.chat.id, open('bar/roulette.gif', 'rb'), disable_content_type_detection=True)
+            roulette = await bot.send_document(call.message.chat.id, FSInputFile('bar/roulette.gif'), disable_content_type_detection=True)
             await asyncio.sleep(0.5)
             rand_mes = await bot.send_message(call.message.chat.id, coc_list.pop(random.choice(range(len(coc_list)-1))))
             for i in range(10):
@@ -682,8 +689,8 @@ async def callback_inline(call: types.CallbackQuery):
         await coc(rand_coc[user_id], call)
 
     elif call.data == 'classic':
-        rm = types.InlineKeyboardMarkup()
-        editmes = await bot.send_photo(call.message.chat.id, open('bar/coc.jpg', 'rb'), reply_markup=rm)
+        rm = types.InlineKeyboardMarkup(inline_keyboard=[[]])
+        editmes = await bot.send_photo(call.message.chat.id, FSInputFile('bar/coc.jpg'), reply_markup=rm)
         buttons = [types.InlineKeyboardButton(text='Космополитен', callback_data='cosmo'),
                    types.InlineKeyboardButton(text='Дайкири', callback_data='daiq'),
                    types.InlineKeyboardButton(text='Апероль Шприц', callback_data='spritz'),
@@ -701,13 +708,17 @@ async def callback_inline(call: types.CallbackQuery):
         for i in range(int(len(buttons) / 2 + 1)):
             await asyncio.sleep(0.5)
             if len(buttons) == 0:
-                rm.add(types.InlineKeyboardButton(text='🔙', callback_data='bar'))
+                rm.inline_keyboard.append([types.InlineKeyboardButton(text='🔙', callback_data='bar')])
             else:
-                rm.add(buttons.pop(), buttons.pop())
+                rm.inline_keyboard.append([buttons.pop(), buttons.pop()])
             await bot.edit_message_reply_markup(call.message.chat.id, editmes.message_id, reply_markup=rm)
 
     elif call.data in bar_dict:
         await coc(bar_dict[call.data], call)
 
 
-executor.start_polling(dispatcher=dp, skip_updates=True)
+async def main():
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
